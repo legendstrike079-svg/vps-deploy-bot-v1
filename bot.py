@@ -20,7 +20,7 @@ import re
 
 # Load environment variables
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN', '')
-BOT_NAME = os.getenv('BOT_NAME', 'EVIL-v1')
+BOT_NAME = os.getenv('BOT_NAME', 'Champion VPS')
 PREFIX = os.getenv('PREFIX', '!')
 YOUR_SERVER_IP = os.getenv('YOUR_SERVER_IP', '127.0.0.1')
 
@@ -48,7 +48,8 @@ MAIN_ADMIN_ID = int(MAIN_ADMIN_IDS_ENV[0])  # kept for backward-compat display p
 VPS_USER_ROLE_ID = int(os.getenv('VPS_USER_ROLE_ID', '1210291131301101618'))
 DEFAULT_STORAGE_POOL = os.getenv('DEFAULT_STORAGE_POOL', 'default')
 BOT_VERSION = os.getenv('BOT_VERSION', '9.0-PRO')
-BOT_DEVELOPER = os.getenv('BOT_DEVELOPER', 'EVILSAAD')
+BOT_LOGO_URL = os.getenv('BOT_LOGO_URL', '').strip()  # Direct public image URL for embed thumbnail/footer icon
+BOT_DEVELOPER = os.getenv('BOT_DEVELOPER', 'Champion VPS')
 
 # OS Options for VPS Creation and Reinstall
 OS_OPTIONS = [
@@ -442,9 +443,13 @@ def create_embed(title, description="", color=0x1a1a1a):
         description=truncate_text(description, 4096),
         color=color
     )
-    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1551851022459346995/1551854053431181342/file_0000000012e482089bbcb6baf6541790.png?ex=6ab37c36&is=6ab22ab6&hm=befd08e6f0d32dc78d13de9f687071e0baafc9fe46c449b9dea196dc5a2214d2&")
-    embed.set_footer(text=f"{BOT_NAME} VPS Manager v{BOT_VERSION} • {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                     icon_url="https://cdn.discordapp.com/attachments/1551851022459346995/1551854054181707846/file_00000000d0208211a03e73df9a707fcb.png?ex=6ab37c36&is=6ab22ab6&hm=b1008fc48b2f4a57e89cdab46d804fcc53f53296e5a3f3401b94b5fff5ca0373&")
+    # Use Champion VPS branding; set BOT_LOGO_URL to a public direct image URL.
+    if BOT_LOGO_URL:
+        embed.set_thumbnail(url=BOT_LOGO_URL)
+    embed.set_footer(
+        text=f"{BOT_NAME} VPS Manager v{BOT_VERSION} • {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        icon_url=BOT_LOGO_URL or None
+    )
     return embed
 
 def add_field(embed, name, value, inline=False):
@@ -1043,7 +1048,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         return
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(embed=create_error_embed("Missing Argument", "Please check command usage with `!help`."))
+        await ctx.send(embed=create_error_embed("Missing Argument", f"Please check command usage with `{PREFIX}help`."))
     elif isinstance(error, commands.BadArgument):
         await ctx.send(embed=create_error_embed("Invalid Argument", "Please check your input and try again."))
     elif isinstance(error, commands.CheckFailure):
@@ -2198,7 +2203,7 @@ async def ports_command(ctx, subcmd: str = None, *args):
             add_field(embed, "Quota Update", f"Used: {used - 1}/{allocated}", False)
             await ctx.send(embed=embed)
         else:
-            await ctx.send(embed=create_error_embed("Not Found", "Forward ID not found. Use !ports list."))
+            await ctx.send(embed=create_error_embed("Not Found", f"Forward ID not found. Use {PREFIX}ports list."))
     else:
         await ctx.send(embed=create_error_embed("Invalid Subcommand", f"Use: add <vps_num> <port>, list, remove <id>"))
 
@@ -3801,7 +3806,7 @@ async def quick_help(ctx):
     is_admin_user = user_id in main_admin_ids or user_id in admin_data.get("admins", [])
     
     embed = create_info_embed("🚀 Quick Help Reference", 
-        "Quick reference for common tasks. Use `!help` for complete command list.")
+        f"Quick reference for common tasks. Use `{PREFIX}help` for complete command list.")
     
     # Common user tasks
     add_field(embed, "👤 For Users", 
@@ -3834,7 +3839,7 @@ async def quick_help(ctx):
             "• `!serverstats` - System overview\n"
             "• `!suspend-vps <container> <reason>` - Suspend VPS", False)
     
-    embed.set_footer(text=f"{BOT_NAME} VPS Manager • Use !help for complete command list")
+    embed.set_footer(text=f"{BOT_NAME} VPS Manager • Use {PREFIX}help for complete command list")
     await ctx.send(embed=embed)
 
 @bot.command(name='help-search')
@@ -3889,7 +3894,7 @@ async def help_search(ctx, *, search_term: str = None):
     if len(matches) > 15:
         add_field(embed, "Note", f"Showing 15 of {len(matches)} matches. Try a more specific search.", False)
     
-    embed.set_footer(text=f"{BOT_NAME} VPS Manager • Use !help for complete list")
+    embed.set_footer(text=f"{BOT_NAME} VPS Manager • Use {PREFIX}help for complete list")
     await ctx.send(embed=embed)    
 
 @bot.command(name='node')
